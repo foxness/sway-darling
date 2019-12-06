@@ -1,0 +1,18 @@
+extends layout
+
+block scripts
+  script(src="/javascripts/moderate.js")
+
+block content
+  h1= title
+  p Welcome to #{title}
+  table(style="width:100%")
+    tr
+      th Comment
+      th(style="width:10%") Approval
+    tr
+      td Hey
+      td yes/no
+    tr
+      td Lalalalalal
+      td yes/no
