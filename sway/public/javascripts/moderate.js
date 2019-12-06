@@ -21,13 +21,33 @@ let updateTable = () =>
 
     for (let commentId in comments)
     {
+    //     <input class="favorite styled"
+    //    type="button"
+    //    value="Add to favorites">
+
         let comment = comments[commentId]
-        content += `<tr><td>${comment.user}</td><td>${comment.text}</td><td>yes/no</td></tr>`
+        let goodbutton = `<input id='${commentId}g' type='button' value='Good'>`
+        let badbutton = `<input id='${commentId}b' type='button' value='Bad'>`
+        let approvalcontent = comment.status == 'pending' ? `${goodbutton}${badbutton}` : 'approved'
+        content += `<tr><td>${comment.user}</td><td>${comment.text}</td><td>${approvalcontent}</td></tr>`
     }
 
     content += "</table>"
 
     $('#tablediv').html(content)
+
+    for (let commentId in comments)
+    {
+        $(`#${commentId}g`).on('click', () =>
+        {
+            sendApproveComment(commentId)
+        })
+
+        $(`#${commentId}b`).on('click', () =>
+        {
+            sendDisapproveComment(commentId)
+        })
+    }
 }
 
 let getWebsocketServerUri = () =>
@@ -54,6 +74,16 @@ let sendComment = (comment) =>
 let requestComments = () =>
 {
     sendToServer('getComments', null)
+}
+
+let sendApproveComment = (commentId) =>
+{
+    sendToServer('approveComment', { commentId: commentId })
+}
+
+let sendDisapproveComment = (commentId) =>
+{
+    sendToServer('disapproveComment', { commentId: commentId })
 }
 
 let ws = new WebSocket(getWebsocketServerUri())

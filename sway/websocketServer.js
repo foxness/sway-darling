@@ -71,7 +71,12 @@ wss.on('connection', (connection, req) =>
                 {
                     debug(`${userId} says: "${json.value.comment}"`)
 
-                    Globals.comments[generateId()] = { text: json.value.comment, user: userId }
+                    let id = generateId()
+                    let text = json.value.comment
+                    let user = userId
+                    let status = 'pending'
+
+                    Globals.comments[id] = { text: text, user: user, status: status }
 
                     Globals.sendCommentsToMods()
 
@@ -81,6 +86,24 @@ wss.on('connection', (connection, req) =>
             case 'getComments':
                 {
                     Globals.sendCommentsToUser(userId)
+
+                    break
+                }
+            
+            case 'approveComment':
+                {
+                    Globals.comments[json.value.commentId].status = 'approved'
+
+                    Globals.sendCommentsToMods()
+
+                    break
+                }
+            
+            case 'disapproveComment':
+                {
+                    delete Globals.comments[json.value.commentId]
+
+                    Globals.sendCommentsToMods()
 
                     break
                 }
