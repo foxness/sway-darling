@@ -1,4 +1,7 @@
-let userId = 'user1'
+let userId = 'mod1'
+
+let comments = []//[{id: 'spdofk', text: 'this is a comment', user: 'stupiduser'},
+                //{id: 'dasd', text: 'this is another comment', user: 'blauser'}]
 
 $(() =>
 {
@@ -7,7 +10,23 @@ $(() =>
         let comment = $("#commentbox").val()
         sendComment(comment)
     })
+
+    updateTable()
 })
+
+let updateTable = () =>
+{
+    var content = `<table style="width:100%"><tr><th style="width:10%">User</th><th>Comment</th><th style="width:10%">Approval</th>`
+
+    for (let comment of comments)
+    {
+        content += `<tr><td>${comment.user}</td><td>${comment.text}</td><td>yes/no</td></tr>`
+    }
+
+    content += "</table>"
+
+    $('#tablediv').html(content)
+}
 
 let getWebsocketServerUri = () =>
 {
