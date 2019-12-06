@@ -1,6 +1,6 @@
 let userId = 'mod1'
 
-let comments = []//[{id: 'spdofk', text: 'this is a comment', user: 'stupiduser'},
+let comments = {}//[{id: 'spdofk', text: 'this is a comment', user: 'stupiduser'},
                 //{id: 'dasd', text: 'this is another comment', user: 'blauser'}]
 
 $(() =>
@@ -18,8 +18,9 @@ let updateTable = () =>
 {
     var content = `<table style="width:100%"><tr><th style="width:10%">User</th><th>Comment</th><th style="width:10%">Approval</th>`
 
-    for (let comment of comments)
+    for (let commentId in comments)
     {
+        let comment = comments[commentId]
         content += `<tr><td>${comment.user}</td><td>${comment.text}</td><td>yes/no</td></tr>`
     }
 
@@ -49,15 +50,21 @@ let sendComment = (comment) =>
     sendToServer('comment', { comment: comment })
 }
 
+let requestComments = () =>
+{
+    sendToServer('getComments', null)
+}
+
 let ws = new WebSocket(getWebsocketServerUri())
 
 ws.onmessage = (event) =>
 {
     let json = JSON.parse(event.data)
 
-    if (json.type == 'queueInfo')
+    if (json.type == 'comments')
     {
-        // let asd
+        comments = json.value.comments
+        updateTable()
     }
     else if (json.type == 'imgurInfo')
     {
@@ -72,4 +79,5 @@ ws.onmessage = (event) =>
 ws.onopen = (event) =>
 {
     sendHello(userId)
+    requestComments()
 }

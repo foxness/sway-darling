@@ -36,18 +36,18 @@ ws.onmessage = (event) =>
 {
     let json = JSON.parse(event.data)
 
-    if (json.type == 'queueInfo')
-    {
-        // let asd
-    }
-    else if (json.type == 'imgurInfo')
-    {
-        // asd
-    }
-    else
-    {
-        alert(`Unknown server response: ${event.data}`)
-    }
+    // if (json.type == 'queueInfo')
+    // {
+    //     // let asd
+    // }
+    // else if (json.type == 'imgurInfo')
+    // {
+    //     // asd
+    // }
+    // else
+    // {
+    //     alert(`Unknown server response: ${event.data}`)
+    // }
 }
 
 ws.onopen = (event) =>
