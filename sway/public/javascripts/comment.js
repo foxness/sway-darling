@@ -5,6 +5,7 @@ $(() =>
     $('#submitbutton').on('click', () =>
     {
         let comment = $("#commentbox").val()
+        $('#commentbox').val('')
         sendComment(comment)
     })
 })
@@ -22,7 +23,7 @@ let sendToServer = (type, value) =>
 
 let sendHello = (uid) =>
 {
-    sendToServer('hello', { id: uid })
+    sendToServer('hello', { id: uid, type: 'user' })
 }
 
 let sendComment = (comment) =>
@@ -32,23 +33,23 @@ let sendComment = (comment) =>
 
 let ws = new WebSocket(getWebsocketServerUri())
 
-ws.onmessage = (event) =>
-{
-    let json = JSON.parse(event.data)
+// ws.onmessage = (event) =>
+// {
+//     let json = JSON.parse(event.data)
 
-    // if (json.type == 'queueInfo')
-    // {
-    //     // let asd
-    // }
-    // else if (json.type == 'imgurInfo')
-    // {
-    //     // asd
-    // }
-    // else
-    // {
-    //     alert(`Unknown server response: ${event.data}`)
-    // }
-}
+//     // if (json.type == 'queueInfo')
+//     // {
+//     //     // let asd
+//     // }
+//     // else if (json.type == 'imgurInfo')
+//     // {
+//     //     // asd
+//     // }
+//     // else
+//     // {
+//     //     alert(`Unknown server response: ${event.data}`)
+//     // }
+// }
 
 ws.onopen = (event) =>
 {

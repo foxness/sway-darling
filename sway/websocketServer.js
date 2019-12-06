@@ -49,7 +49,7 @@ wss.on('connection', (connection, req) =>
                 if (!found)
                 {
                     userId = json.value.id
-                    Globals.users[userId] = { connection: connection }
+                    Globals.users[userId] = { type: json.value.type, connection: connection }
                 }
             }
 
@@ -73,7 +73,7 @@ wss.on('connection', (connection, req) =>
 
                     Globals.comments[generateId()] = { text: json.value.comment, user: userId }
 
-                    Globals.sendCommentsToUsers()
+                    Globals.sendCommentsToMods()
 
                     break
                 }
@@ -107,11 +107,14 @@ Globals.sendCommentsToUser = (userId_) =>
     Globals.sendToUser(userId_, { type: 'comments', value: { comments: Globals.comments } } )
 }
 
-Globals.sendCommentsToUsers = () =>
+Globals.sendCommentsToMods = () =>
 {
     for (let userId_ in Globals.users)
     {
-        Globals.sendCommentsToUser(userId_)
+        if (Globals.users[userId_].type == 'mod')
+        {
+            Globals.sendCommentsToUser(userId_)
+        }
     }
 }
 

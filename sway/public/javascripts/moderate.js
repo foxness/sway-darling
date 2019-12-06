@@ -42,7 +42,7 @@ let sendToServer = (type, value) =>
 
 let sendHello = (uid) =>
 {
-    sendToServer('hello', { id: uid })
+    sendToServer('hello', { id: uid, type: 'mod' })
 }
 
 let sendComment = (comment) =>
