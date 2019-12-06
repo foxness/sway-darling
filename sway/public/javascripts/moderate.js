@@ -6,12 +6,6 @@ let comments = {}//[{id: 'spdofk', text: 'this is a comment', user: 'stupiduser'
 
 $(() =>
 {
-    $('#submitbutton').on('click', () =>
-    {
-        let comment = $("#commentbox").val()
-        sendComment(comment)
-    })
-
     updateTable()
 })
 
@@ -21,11 +15,13 @@ let updateTable = () =>
 
     for (let commentId in comments)
     {
-    //     <input class="favorite styled"
-    //    type="button"
-    //    value="Add to favorites">
-
         let comment = comments[commentId]
+
+        if (comment.status != 'pending')
+        {
+            continue;
+        }
+
         let goodbutton = `<input id='${commentId}g' type='button' value='Good'>`
         let badbutton = `<input id='${commentId}b' type='button' value='Bad'>`
         let approvalcontent = comment.status == 'pending' ? `${goodbutton}${badbutton}` : 'approved'

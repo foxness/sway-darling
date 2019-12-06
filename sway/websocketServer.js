@@ -95,6 +95,7 @@ wss.on('connection', (connection, req) =>
                     Globals.comments[json.value.commentId].status = 'approved'
 
                     Globals.sendCommentsToMods()
+                    Globals.sendCommentsToUsers()
 
                     break
                 }
@@ -113,11 +114,6 @@ wss.on('connection', (connection, req) =>
     })
 })
 
-// Globals.sendQueueInfoToUser = async(userId) =>
-// {
-//     Globals.sendToUser(userId, { type: 'queueInfo', value: await getQueueInfo(userId) })
-// }
-
 Globals.sendToUser = (userId, obj) =>
 {
     let sent = JSON.stringify(obj)
@@ -127,7 +123,43 @@ Globals.sendToUser = (userId, obj) =>
 
 Globals.sendCommentsToUser = (userId_) =>
 {
+    let comments = Globals.convertToUserComments()
+    Globals.sendToUser(userId_, { type: 'comments', value: { comments: comments } } )
+}
+
+Globals.sendCommentsToMod = (userId_) =>
+{
     Globals.sendToUser(userId_, { type: 'comments', value: { comments: Globals.comments } } )
+}
+
+Globals.convertToUserComments = () =>
+{
+    let comments = {}
+
+    for (let commentId in Globals.comments)
+    {
+        let comment = Globals.comments[commentId]
+
+        if (comment.status == 'approved')
+        {
+            comments[commentId] = { user: comment.user, text: comment.text }
+        }
+    }
+
+    return comments
+}
+
+Globals.sendCommentsToUsers = () =>
+{
+    let comments = Globals.convertToUserComments()
+
+    for (let userId_ in Globals.users)
+    {
+        if (Globals.users[userId_].type == 'user')
+        {
+            Globals.sendToUser(userId_, { type: 'comments', value: { comments: comments } } )
+        }
+    }
 }
 
 Globals.sendCommentsToMods = () =>
@@ -136,7 +168,7 @@ Globals.sendCommentsToMods = () =>
     {
         if (Globals.users[userId_].type == 'mod')
         {
-            Globals.sendCommentsToUser(userId_)
+            Globals.sendCommentsToMod(userId_)
         }
     }
 }
