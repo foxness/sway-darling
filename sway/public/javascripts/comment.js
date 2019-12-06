@@ -15,7 +15,7 @@ $(() =>
 
 let updateTable = () =>
 {
-    var content = `<table style="width:100%"><tr><th style="width:10%">User</th><th>Comment</th>`
+    var content = `<br><table style="width:100%"><tr><th style="width:10%">User</th><th>Comment</th>`
 
     for (let commentId in comments)
     {
