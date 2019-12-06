@@ -1,4 +1,5 @@
-let userId = 'mod1'
+let searchParams = new URLSearchParams(window.location.search)
+let userId = searchParams.get('userid') || 'unnamedMod'
 
 let comments = {}//[{id: 'spdofk', text: 'this is a comment', user: 'stupiduser'},
                 //{id: 'dasd', text: 'this is another comment', user: 'blauser'}]

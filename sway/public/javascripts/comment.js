@@ -1,4 +1,5 @@
-let userId = 'user1'
+let searchParams = new URLSearchParams(window.location.search)
+let userId = searchParams.get('userid') || 'unnamedUser'
 
 $(() =>
 {
