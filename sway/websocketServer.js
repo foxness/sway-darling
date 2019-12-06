@@ -1,6 +1,6 @@
 let WebSocket = require('ws')
 let Globals = require('./globals')
-var debug = require('debug')('sway:server')
+var debug = console.log
 
 let wss = new WebSocket.Server({ server: Globals.httpServer })
 
@@ -37,13 +37,16 @@ wss.on('connection', (connection, req) =>
             }
 
             firstMessageReceived = true
+
+            debug(`user connected: ${userId}`)
         }
 
         switch (json.type)
         {
+            case 'hello': break
             case 'comment':
                 {
-                    debug(json.value)
+                    debug(`${userId} says: "${json.value.comment}"`)
 
                     break
                 }
@@ -53,15 +56,15 @@ wss.on('connection', (connection, req) =>
     })
 })
 
-Globals.sendQueueInfoToUser = async(userId) =>
-{
-    Globals.sendToUser(userId, { type: 'queueInfo', value: await getQueueInfo(userId) })
-}
+// Globals.sendQueueInfoToUser = async(userId) =>
+// {
+//     Globals.sendToUser(userId, { type: 'queueInfo', value: await getQueueInfo(userId) })
+// }
 
-Globals.sendToUser = (userId, obj) =>
-{
-    let sent = JSON.stringify(obj)
-    Globals.users[userId].wsConnection.send(sent)
-}
+// Globals.sendToUser = (userId, obj) =>
+// {
+//     let sent = JSON.stringify(obj)
+//     Globals.users[userId].wsConnection.send(sent)
+// }
 
 module.exports = wss
