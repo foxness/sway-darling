@@ -85,7 +85,14 @@ wss.on('connection', (connection, req) =>
             
             case 'getComments':
                 {
-                    Globals.sendCommentsToUser(userId)
+                    if (Globals.users[userId].type == 'mod')
+                    {
+                        Globals.sendCommentsToMod(userId)
+                    }
+                    else
+                    {
+                        Globals.sendCommentsToUser(userId)
+                    }
 
                     break
                 }
