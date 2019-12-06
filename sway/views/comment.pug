@@ -1,7 +1,10 @@
 extends layout
 
+block scripts
+  script(src="/javascripts/comment.js")
+
 block content
   h1= title
   p Welcome to #{title}
-  input(type='text' name='commentbox')
-  input(type='button' name='submitbutton' value='Submit')
+  input(type='text' id='commentbox')
+  input(type='button' id='submitbutton' value='Submit')
