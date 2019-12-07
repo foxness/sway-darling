@@ -6,6 +6,9 @@ var debug = console.log
 
 let wss = new WebSocket.Server({ server: Globals.httpServer })
 
+let ausers = {}
+let acomments = {}
+
 let generateRandomString = (length) =>
 {
     let result = ''
@@ -23,12 +26,12 @@ let generateId = () => { return generateRandomString(8) }
 
 let modBusyness = (userid) =>
 {
-    return Globals.users[userid].comments.length
+    return ausers[userid].comments.length
 }
 
 let getLeastBusyModButNot = (id) =>
 {
-    let mods = Object.keys(Globals.users).filter(id => Globals.users[id].type == 'mod')
+    let mods = Object.keys(ausers).filter(id => ausers[id].type == 'mod')
     if (mods.length == 0)
     {
         return null
@@ -72,13 +75,13 @@ wss.on('connection', (connection, req) =>
             if (json.type == 'hello')
             {
                 let found = false
-                for (let userId_ in Globals.users)
+                for (let userId_ in ausers)
                 {
                     if (userId_ == json.value.id)
                     {
                         found = true
                         userId = userId_
-                        Globals.users[userId].connection = connection
+                        ausers[userId].connection = connection
                         break
                     }
                 }
@@ -93,7 +96,7 @@ wss.on('connection', (connection, req) =>
                         u.comments = []
                     }
 
-                    Globals.users[userId] = u
+                    ausers[userId] = u
                 }
             }
 
@@ -123,31 +126,31 @@ wss.on('connection', (connection, req) =>
                     let mod = getLeastBusyMod()
                     if (mod != null)
                     {
-                        Globals.users[mod].comments.push(id)
+                        ausers[mod].comments.push(id)
 
                         let timer = new Timer(moment.duration(10, 's'))
                         timer.on('tick', () =>
                         {
-                            let mods = Object.keys(Globals.users).filter((u) => Globals.users[u].type == 'mod')
+                            let mods = Object.keys(ausers).filter((u) => ausers[u].type == 'mod')
                             if (mods.length == 1)
                             {
                                 return
                             }
 
-                            let oldmod = mods.find(u => Globals.users[u].comments.includes(id))
+                            let oldmod = mods.find(u => ausers[u].comments.includes(id))
                             let newmod = getLeastBusyModButNot(oldmod)
 
-                            let i = Globals.users[oldmod].comments.indexOf(id);
-                            Globals.users[oldmod].comments.splice(i, 1)
+                            let i = ausers[oldmod].comments.indexOf(id);
+                            ausers[oldmod].comments.splice(i, 1)
 
-                            Globals.users[newmod].comments.push(id)
+                            ausers[newmod].comments.push(id)
 
-                            Globals.sendCommentsToMods()
+                            sendCommentsToMods()
                         })
                         timer.start()
 
-                        Globals.comments[id] = { text: text, user: user, status: status, timer: timer }
-                        Globals.sendCommentsToMods()
+                        acomments[id] = { text: text, user: user, status: status, timer: timer }
+                        sendCommentsToMods()
                     }
 
                     break
@@ -155,13 +158,13 @@ wss.on('connection', (connection, req) =>
             
             case 'getComments':
                 {
-                    if (Globals.users[userId].type == 'mod')
+                    if (ausers[userId].type == 'mod')
                     {
-                        Globals.sendCommentsToMod(userId)
+                        sendCommentsToMod(userId)
                     }
                     else
                     {
-                        Globals.sendCommentsToUser(userId)
+                        sendCommentsToUser(userId)
                     }
 
                     break
@@ -169,22 +172,22 @@ wss.on('connection', (connection, req) =>
             
             case 'approveComment':
                 {
-                    Globals.comments[json.value.commentId].timer.stop()
-                    Globals.comments[json.value.commentId].timer = null
-                    Globals.comments[json.value.commentId].status = 'approved'
+                    acomments[json.value.commentId].timer.stop()
+                    acomments[json.value.commentId].timer = null
+                    acomments[json.value.commentId].status = 'approved'
 
-                    Globals.sendCommentsToMods()
-                    Globals.sendCommentsToUsers()
+                    sendCommentsToMods()
+                    sendCommentsToUsers()
 
                     break
                 }
             
             case 'disapproveComment':
                 {
-                    Globals.comments[json.value.commentId].timer.stop()
-                    delete Globals.comments[json.value.commentId]
+                    acomments[json.value.commentId].timer.stop()
+                    delete acomments[json.value.commentId]
 
-                    Globals.sendCommentsToMods()
+                    sendCommentsToMods()
 
                     break
                 }
@@ -194,32 +197,32 @@ wss.on('connection', (connection, req) =>
     })
 })
 
-Globals.sendToUser = (userId, obj) =>
+let sendToUser = (userId, obj) =>
 {
     let sent = JSON.stringify(obj)
     debug(`sending ${sent} to ${userId}`)
-    Globals.users[userId].connection.send(sent)
+    ausers[userId].connection.send(sent)
 }
 
-Globals.sendCommentsToUser = (userId_) =>
+let sendCommentsToUser = (userId_) =>
 {
-    let comments = Globals.convertToUserComments()
-    Globals.sendToUser(userId_, { type: 'comments', value: { comments: comments } } )
+    let comments = convertToUserComments()
+    sendToUser(userId_, { type: 'comments', value: { comments: comments } } )
 }
 
-Globals.sendCommentsToMod = (mod) =>
+let sendCommentsToMod = (mod) =>
 {
-    let comments = Globals.convertToModComments(mod)
-    Globals.sendToUser(mod, { type: 'comments', value: { comments: comments } } )
+    let comments = convertToModComments(mod)
+    sendToUser(mod, { type: 'comments', value: { comments: comments } } )
 }
 
-Globals.convertToUserComments = () =>
+let convertToUserComments = () =>
 {
     let comments = {}
 
-    for (let commentId in Globals.comments)
+    for (let commentId in acomments)
     {
-        let comment = Globals.comments[commentId]
+        let comment = acomments[commentId]
 
         if (comment.status == 'approved')
         {
@@ -230,15 +233,15 @@ Globals.convertToUserComments = () =>
     return comments
 }
 
-Globals.convertToModComments = (mod) =>
+let convertToModComments = (mod) =>
 {
     let comments = {}
 
-    for (let commentId in Globals.comments)
+    for (let commentId in acomments)
     {
-        let comment = Globals.comments[commentId]
+        let comment = acomments[commentId]
 
-        if (Globals.users[mod].comments.includes(commentId))
+        if (ausers[mod].comments.includes(commentId))
         {
             comments[commentId] = { status: comment.status, user: comment.user, text: comment.text }
         }
@@ -247,26 +250,26 @@ Globals.convertToModComments = (mod) =>
     return comments
 }
 
-Globals.sendCommentsToUsers = () =>
+let sendCommentsToUsers = () =>
 {
-    let comments = Globals.convertToUserComments()
+    let comments = convertToUserComments()
 
-    for (let userId_ in Globals.users)
+    for (let userId_ in ausers)
     {
-        if (Globals.users[userId_].type == 'user')
+        if (ausers[userId_].type == 'user')
         {
-            Globals.sendToUser(userId_, { type: 'comments', value: { comments: comments } } )
+            sendToUser(userId_, { type: 'comments', value: { comments: comments } } )
         }
     }
 }
 
-Globals.sendCommentsToMods = () =>
+let sendCommentsToMods = () =>
 {
-    for (let mod in Globals.users)
+    for (let mod in ausers)
     {
-        if (Globals.users[mod].type == 'mod')
+        if (ausers[mod].type == 'mod')
         {
-            Globals.sendCommentsToMod(mod)
+            sendCommentsToMod(mod)
         }
     }
 }
