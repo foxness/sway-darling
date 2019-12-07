@@ -9,6 +9,8 @@ let wss = new WebSocket.Server({ server: Globals.httpServer })
 let ausers = {}
 let acomments = {}
 
+let interval = moment.duration(1, 'm')
+
 let generateRandomString = (length) =>
 {
     let result = ''
@@ -97,6 +99,55 @@ wss.on('connection', (connection, req) =>
                     }
 
                     ausers[userId] = u
+
+                    if (u.type == 'mod')
+                    {
+                        let comments = Object.keys(acomments).filter(c =>
+                        {
+                            let free = true
+
+                            for (let au in ausers)
+                            {
+                                if (ausers[au].type == 'mod' && ausers[au].comments.includes(c))
+                                {
+                                    free = false
+                                    break
+                                }
+                            }
+
+                            return free && acomments[c].status == 'pending'
+                        })
+
+                        for (let id of comments)
+                        {
+                            ausers[userId].comments.push(id)
+                            
+                            let timer = new Timer(interval)
+                            timer.on('tick', () =>
+                            {
+                                let mods = Object.keys(ausers).filter((u) => ausers[u].type == 'mod')
+                                if (mods.length == 1)
+                                {
+                                    return
+                                }
+        
+                                let oldmod = mods.find(u => ausers[u].comments.includes(id))
+                                let newmod = getLeastBusyModButNot(oldmod)
+        
+                                let i = ausers[oldmod].comments.indexOf(id);
+                                ausers[oldmod].comments.splice(i, 1)
+        
+                                ausers[newmod].comments.push(id)
+        
+                                sendCommentsToMods()
+                            })
+                            timer.start()
+
+                            acomments[id].timer = timer
+                        }
+
+                        sendCommentsToMods()
+                    }
                 }
             }
 
@@ -128,7 +179,7 @@ wss.on('connection', (connection, req) =>
                     {
                         ausers[mod].comments.push(id)
 
-                        let timer = new Timer(moment.duration(10, 's'))
+                        let timer = new Timer(interval)
                         timer.on('tick', () =>
                         {
                             let mods = Object.keys(ausers).filter((u) => ausers[u].type == 'mod')
@@ -151,6 +202,10 @@ wss.on('connection', (connection, req) =>
 
                         acomments[id] = { text: text, user: user, status: status, timer: timer }
                         sendCommentsToMods()
+                    }
+                    else
+                    {
+                        acomments[id] = { text: text, user: user, status: status, timer: null }
                     }
 
                     break
