@@ -1,5 +1,10 @@
 extends layout
 
+block scripts
+  script(src="/javascripts/index.js")
+
 block content
-  h1= title
-  p Welcome to #{title}
+  h1 Hello
+  input(type='text' id='namebox' placeholder='Your name')
+  input(type='button' id='userbutton' value='I am a user')
+  input(type='button' id='moderatorbutton' value='I am a moderator')
